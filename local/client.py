@@ -13,6 +13,9 @@ SLEEP_TIME = 5  # seconds
 
 
 def sendFile(s, file):
+    # TODO: send the filesize before sending the file to make sure that the file is received completely
+    #       wait for a confirmation message from the server to make sure that the file is received completely
+
     with open(os.path.join(LOCAL_FOLDER, file), 'rb') as f:  # open the file in binary reading mode
         data = f.read(BUFFER)    # read the first BUFFER sized chunk of data
         while data:     # loop to read the rest of the data and send it 
