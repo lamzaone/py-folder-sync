@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run server",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/remote/server.py"
+            ],
+            "presentation": {
+                "group": "build"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run client",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/local/client.py"
+            ],
+            "presentation": {
+                "group": "build"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,16 +1,29 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python: server",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "${workspaceFolder}/remote/server.py",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "preLaunchTask": "Run server",
+            "stopOnEntry": true
+        },
+        {
+            "name": "Python: client",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/local/client.py",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Run client",
+            "stopOnEntry": true
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Python: server and client",
+            "configurations": ["Python: server", "Python: client"]
         }
     ]
 }
