@@ -40,7 +40,7 @@ def synchroniseFiles(client_socket, folder):
         else:
             if os.path.getmtime(os.path.join(folder, file)) < float(modified_time): # check if the file is modified
                 print("File", file, "is modified", time.ctime(os.path.getmtime(os.path.join(folder, file))), "vs", time.ctime(float(modified_time)))
-                client_socket.sendall('not found'.encode())
+                client_socket.sendall('outdated'.encode())
                 recieveFile(client_socket, file)
             else:
                 client_socket.sendall('found'.encode()) # send a message to the client to let it know that the file is found on the server, so it should not send it
