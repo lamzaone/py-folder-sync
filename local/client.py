@@ -35,10 +35,10 @@ def synchroniseFiles(s, folder):
     # send the list of files in the folder
     files = os.listdir(folder)      # get the list of files in the folder
     for file in files:
-        print("File:", file)
         if file == 'client.py':     # skip this file
             continue                # skip the rest of the code in the loop and go to the next iteration
-        s.sendall(file.encode())        # send the name of the file
+        modified_time = os.path.getmtime(os.path.join(folder, file)) # getmtime() returns the time of last modification of the file
+        s.sendall(f"{file};{modified_time}".encode())        # send the name of the file
         response = s.recv(BUFFER).decode()      # wait for a response from the server
         if response == 'not found':     # if the file is not found on the server, send it
             sendFile(s, file)
