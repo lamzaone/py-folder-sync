@@ -4,6 +4,6 @@ The app synchronizes the files from the local directory (  client.py location ) 
 
 
 TODOs:
-- Update existing files
+- ~~Update existing files~~
 - Delete files
 - Implement changelog.txt

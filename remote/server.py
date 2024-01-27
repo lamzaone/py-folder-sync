@@ -1,6 +1,6 @@
 import socket
 import os
-from time import sleep
+import time
 
 PORT = 8080
 BUFFER = 1024
@@ -28,15 +28,22 @@ def recieveFile(client_socket, file):
 
 def synchroniseFiles(client_socket, folder):
     while True:
-        file = client_socket.recv(BUFFER).decode() # receive the name of the file
-        if file == 'EOL': # check if the end of the list is reached
+        message = client_socket.recv(BUFFER).decode() # receive the name of the file
+        try:
+            file, modified_time = message.split(';')
+        except:
             break
         print("File:", file) # print the name of the file
         if file not in os.listdir(folder): # check if the file is not in the folder
             client_socket.sendall('not found'.encode()) # send a message to the client to let it know that the file is not found on the server, so it should send it
             recieveFile(client_socket, file) # receive the file
         else:
-            client_socket.sendall('found'.encode()) # send a message to the client to let it know that the file is found on the server, so it should not send it
+            if os.path.getmtime(os.path.join(folder, file)) < float(modified_time): # check if the file is modified
+                print("File", file, "is modified", time.ctime(os.path.getmtime(os.path.join(folder, file))), "vs", time.ctime(float(modified_time)))
+                client_socket.sendall('outdated'.encode())
+                recieveFile(client_socket, file)
+            else:
+                client_socket.sendall('found'.encode()) # send a message to the client to let it know that the file is found on the server, so it should not send it
 
 
 
@@ -56,7 +63,7 @@ def main():
         while client_socket:
             synchroniseFiles(client_socket, REMOTE_FOLDER)
             print("Waiting for" , SLEEP_TIME, "seconds...")
-            sleep(SLEEP_TIME)
+            time.sleep(SLEEP_TIME)
     except KeyboardInterrupt:
         print("Closing the connection...")
         client_socket.close()
