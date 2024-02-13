@@ -7,6 +7,14 @@ BUFFER = 1024
 REMOTE_FOLDER = os.path.dirname(os.path.abspath(__file__)) # the folder where the files are stored on the server machine (remote) 
 SLEEP_TIME = 5 # seconds
 
+def removeDeletedFiles(folder, clientFiles):
+    for file in os.listdir(folder):
+        print(file)
+        if file == os.path.basename(__file__): # skip the current file
+            continue
+        if file not in clientFiles: 
+            os.remove(os.path.join(folder, file))
+            print("Removed file:", file)
 
 def recieveFile(client_socket, file):
     #TODO: receive the filesize before receiving the file to make sure that the file is received completely after EOF.
@@ -26,7 +34,10 @@ def recieveFile(client_socket, file):
     client_socket.sendall('received'.encode()) # send a confirmation message to the client
 
 
+
 def synchroniseFiles(client_socket, folder):
+    global clientFiles
+    clientFiles = []
     while True:
         message = client_socket.recv(BUFFER).decode() # receive the name of the file
         try:
@@ -44,12 +55,14 @@ def synchroniseFiles(client_socket, folder):
                 recieveFile(client_socket, file)
             else:
                 client_socket.sendall('found'.encode()) # send a message to the client to let it know that the file is found on the server, so it should not send it
+        clientFiles.append(file)
 
 
 
 
 
 
+clientFiles = []
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # AF_INET: IPv4, SOCK_STREAM: TCP
 def main():
     global s    
@@ -62,6 +75,7 @@ def main():
         print('Connected to', client_address)
         while client_socket:
             synchroniseFiles(client_socket, REMOTE_FOLDER)
+            removeDeletedFiles(REMOTE_FOLDER, clientFiles)
             print("Waiting for" , SLEEP_TIME, "seconds...")
             time.sleep(SLEEP_TIME)
     except KeyboardInterrupt:
