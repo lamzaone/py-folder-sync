@@ -1,3 +1,4 @@
+import time
 from time import sleep
 import socket
 import os
@@ -10,7 +11,14 @@ SLEEP_TIME = 5  # seconds
 
 
 
-
+def removeDeletedFiles(s):
+    with open( os.path.join(LOCAL_FOLDER, "logs.txt"), "a") as f:
+        while True:
+            message = s.recv(BUFFER).decode()
+            if message == 'EOL':
+                break
+            f.write(f"[{time.time()}] Deleted file: {message}\n")
+            s.sendall('received'.encode())
 
 def sendFile(s, file):
     # TODO: send the filesize before sending the file to make sure that the file is received completely
@@ -34,21 +42,26 @@ def sendFile(s, file):
 def synchroniseFiles(s, folder):
     # send the list of files in the folder
     files = os.listdir(folder)      # get the list of files in the folder
-    for file in files:
-        if file == 'client.py':     # skip this file
-            continue                # skip the rest of the code in the loop and go to the next iteration
-        print("File:", file)        # print the name of the file
-        modified_time = os.path.getmtime(os.path.join(folder, file)) # getmtime() returns the time of last modification of the file
-        s.sendall(f"{file};{modified_time}".encode())        # send the name of the file
-        response = s.recv(BUFFER).decode()      # wait for a response from the server
-        if response == 'not found' or response == 'outdated':     # if the file is not found on the server, send it
-            sendFile(s, file)
-        elif response == 'found':       # if the file is found on the server, skip it
-            continue
-        else:
-            print("Error:", response)
-            break
-    s.sendall('EOL'.encode())      # send a message to the server to let it know that the end of the list is reached
+    with open(os.path.join(LOCAL_FOLDER, "logs.txt"), "a") as f:    # open the logs file in append mode
+        for file in files:
+            if file == 'client.py' or file == "logs.txt":     # skip this file
+                continue                # skip the rest of the code in the loop and go to the next iteration
+            modified_time = os.path.getmtime(os.path.join(folder, file)) # getmtime() returns the time of last modification of the file
+            s.sendall(f"{file};{modified_time}".encode())        # send the name of the file in filename;modified_time format
+            response = s.recv(BUFFER).decode()      # wait for a response from the server
+            if response == 'not found':
+                f.write(f"[{modified_time}] New file: {file}\n")
+                sendFile(s, file)       # send the file
+            elif response == 'outdated':     # if the file is not found on the server, send it
+                f.write(f"[{modified_time}] Updated file: {file}\n")
+                sendFile(s, file)       # send the file
+            elif response == 'found':       # if the file is found on the server, skip it
+                continue
+            else:
+                print("Error:", response)
+                break
+        s.sendall('EOL'.encode())      # send a message to the server to let it know that the end of the list is reached
+    f.close()       # close the logs file
 
 
 
@@ -79,6 +92,7 @@ def main():
     try:
         while True:
             synchroniseFiles(s, LOCAL_FOLDER)
+            removeDeletedFiles(s)
             print('Waiting', SLEEP_TIME, 'seconds...')
             sleep(SLEEP_TIME)
     except ConnectionAbortedError:
