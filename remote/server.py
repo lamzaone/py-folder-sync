@@ -9,17 +9,13 @@ SLEEP_TIME = 5 # seconds
 
 def removeDeletedFiles(folder, clientFiles, client_socket):
     for file in os.listdir(folder):
-        print(file)
         if file == os.path.basename(__file__): # skip the current file
             continue
         if file not in clientFiles: 
             os.remove(os.path.join(folder, file))
-            print("Removed file:", file)
             client_socket.sendall(file.encode())
             confirmation = client_socket.recv(BUFFER).decode()
-            if confirmation == 'received':
-                print("Confirmation received")
-            else:
+            if confirmation != 'received':
                 print("Error:", confirmation)
     client_socket.sendall('EOL'.encode()) # send a message to the client to let it know that the end of the list is reached
             
@@ -28,7 +24,6 @@ def recieveFile(client_socket, file):
     #TODO: receive the filesize before receiving the file to make sure that the file is received completely after EOF.
     #      send a confirmation message to the client to make sure that the file is received completely after EOF.
     
-
     with open(os.path.join(REMOTE_FOLDER, file), 'wb') as f: # open the file in binary writing mode
         data = client_socket.recv(BUFFER) # receive the first chunk of data
         while data: # loop to write in file and receive the rest of the data

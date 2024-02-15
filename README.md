@@ -10,3 +10,4 @@ TODOs:
 - ~~Update existing files~~
 - ~~Delete files~~
 - ~~Implement changelog.txt~~
+- Sync subfolders

@@ -40,9 +40,6 @@ def sendFile(s, file):
         print("Error:", message)
 
 def synchroniseFiles(s, folder):
-
-    #TODO: access subfolders and send files recursilvely
-    
     # send the list of files in the folder
     files = os.listdir(folder)      # get the list of files in the folder
     with open(os.path.join(LOCAL_FOLDER, "logs.txt"), "a") as f:    # open the logs file in append mode
