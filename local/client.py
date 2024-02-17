@@ -21,8 +21,6 @@ def removeDeletedFiles(s):
             s.sendall('received'.encode())
 
 def sendFile(s, file):
-    # TODO: send the filesize before sending the file to make sure that the file is received completely
-    #       wait for a confirmation message from the server to make sure that the file is received completely
 
     with open(os.path.join(LOCAL_FOLDER, file), 'rb') as f:  # open the file in binary reading mode
         data = f.read(BUFFER)    # read the first BUFFER sized chunk of data
@@ -36,6 +34,10 @@ def sendFile(s, file):
     message = s.recv(BUFFER).decode()       # wait for a confirmation message from the server, to make sure that the file is received
     if message == 'received':
         print("File", file, "sent")
+    elif message == 'not-received':
+        sendFile(s, file)
+        print("Error:", "File", file, "is not received completely")
+        print("Resending the file...")
     else:  
         print("Error:", message)
 
@@ -50,7 +52,8 @@ def synchroniseFiles(s, folder):
             if file == 'client.py' or file == "logs.txt":     # skip this file
                 continue                # skip the rest of the code in the loop and go to the next iteration
             modified_time = os.path.getmtime(os.path.join(folder, file)) # getmtime() returns the time of last modification of the file
-            s.sendall(f"{file};{modified_time}".encode())        # send the name of the file in filename;modified_time format
+            file_size = os.path.getsize(os.path.join(folder, file)) # getsize() returns the size of the file in bytes
+            s.sendall(f"{file};{modified_time};{file_size}".encode())        # send the name of the file in filename;modified_time format
             response = s.recv(BUFFER).decode()      # wait for a response from the server
             if response == 'not found':
                 f.write(f"[{modified_time}] New file: {file}\n")
